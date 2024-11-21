@@ -17,16 +17,16 @@ st.set_page_config(
 # Función para cargar el dataset desde GitHub
 @st.cache_data
 def load_data():
-    # URL del archivo CSV en GitHub
-    url = 'https://raw.githubusercontent.com/RicardoSalazarV/Vehicle/refs/heads/main/Data/vehicles.csv'
-    
-    # Descargar el archivo CSV
-    response = requests.get(url)
-    
-    # Verificar si la solicitud fue exitosa
-    if response.status_code == 200:
-        # Leer el CSV desde el contenido de la respuesta
-        df = pd.read_csv(StringIO(response.text))
+   url = "https://raw.githubusercontent.com/RicardoSalazarV/Vehicle/refs/heads/main/Data/vehicles.csv"
+response = requests.get(url)
+
+if response.status_code == 200:
+    # Cargar el CSV en pandas
+    from io import StringIO
+    df = pd.read_csv(StringIO(response.text))
+    st.write(df.head())  # Mostrar las primeras filas para verificar
+else:
+    st.error(f"Error al descargar el archivo: {response.status_code}")
         
         # Preprocesamiento
         df['date_posted'] = pd.to_datetime(df['date_posted'])
