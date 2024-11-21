@@ -4,6 +4,8 @@ import plotly.express as px
 import seaborn as sns
 import matplotlib.pyplot as plt
 import streamlit as st
+import requests
+from io import StringIO
 
 # Configuración inicial de Streamlit
 st.set_page_config(
@@ -12,20 +14,34 @@ st.set_page_config(
     layout="wide"
 )
 
-# Cargar el dataset
-@st.cache
+# Función para cargar el dataset desde GitHub
+@st.cache_data
 def load_data():
-    file_path = 'C://Users//ricar//Downloads//Vehicles.csv' 
-    df = pd.read_csv(file_path)
-    df['date_posted'] = pd.to_datetime(df['date_posted'])
-    df['vehicle_age'] = df['date_posted'].dt.year - df['model_year']
-    df['condition_simplified'] = df['condition'].map({
-        'excellent': 1, 'like new': 1, 'good': 0, 'fair': 0, 'salvage': 0
-    })
-    df['is_4wd'].fillna(0, inplace=True)
-    df['is_4wd'] = df['is_4wd'].astype(int)
-    return df
+    # URL del archivo CSV en GitHub
+    url = 'https://raw.githubusercontent.com/RicardoSalazarV/Vehicle/refs/heads/main/Data/vehicles.csv'
+    
+    # Descargar el archivo CSV
+    response = requests.get(url)
+    
+    # Verificar si la solicitud fue exitosa
+    if response.status_code == 200:
+        # Leer el CSV desde el contenido de la respuesta
+        df = pd.read_csv(StringIO(response.text))
+        
+        # Preprocesamiento
+        df['date_posted'] = pd.to_datetime(df['date_posted'])
+        df['vehicle_age'] = df['date_posted'].dt.year - df['model_year']
+        df['condition_simplified'] = df['condition'].map({
+            'excellent': 1, 'like new': 1, 'good': 0, 'fair': 0, 'salvage': 0
+        })
+        df['is_4wd'].fillna(0, inplace=True)
+        df['is_4wd'] = df['is_4wd'].astype(int)
+        return df
+    else:
+        st.error(f"Error al descargar el archivo: {response.status_code}")
+        return pd.DataFrame()  # Retorna un DataFrame vacío en caso de error
 
+# Cargar los datos
 df = load_data()
 
 # Título de la app
